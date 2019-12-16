@@ -1,0 +1,9 @@
+spring:
+  application: zkRegTest
+  cloud:
+    zookeeper:
+      connect-string: localhost:2181
+      discovery:
+        enabled: false #禁止注册为客户端
+server:
+  port: 8081

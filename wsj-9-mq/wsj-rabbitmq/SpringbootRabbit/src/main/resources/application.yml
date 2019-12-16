@@ -1,0 +1,19 @@
+server:
+  port: 8080
+spring:
+  rabbitmq:
+    addresses: 127.0.0.1:5672
+    password: guest
+    username: guest
+    publisher-confirms: true
+    virtual-host: /
+    listener:
+      simple:
+        acknowledge-mode: manual #确认模式。手动确认
+        concurrency: 20  #初始化线程数
+        max-concurrency: 100  #监听最大消费者线程数
+    template:
+      retry:
+        max-attempts: 3
+        max-interval: 10000
+        multiplier: 1.0

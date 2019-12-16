@@ -1,0 +1,26 @@
+server:
+  port: 8084
+eureka:
+  client: # 客户端进行Eureka注册的配置
+    register-with-eureka: true  #注册到eureka上
+    service-url:
+      defaultZone: http://admin:admin@localhost:7000/eureka
+  #    defaultZone: http://admin:admin@eureka1:7001/eureka,http://admin:admin@eureka2:7002/eureka,http://admin:admin@eureka3:7003/eureka
+  instance:
+    instance-id: provider-user
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 2 # 设置心跳的时间间隔（默认是30秒）
+    lease-expiration-duration-in-seconds: 5  # 如果现在超过了5秒的间隔（默认是90秒）
+info:
+  app.name: provider-user
+  company.name: user
+  build.artifactId: $project.artifactId$
+  build.modelVersion: $project.modelVersion$
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+spring:
+  application:
+    name: provider-user

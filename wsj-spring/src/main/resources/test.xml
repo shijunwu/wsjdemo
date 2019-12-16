@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <!--
+    id : bean 唯一标示
+    name: bean的名字支持多个
+    class bean类完整路径
+    scope 单利/多利 等   singleton/prototype/prototype、request
+    lazy-init 是否懒加载
+    primary  主键，类型注入时注入，一个类型只能有一个primary
+    depends-on  优先实例bean  如下列 b会优先实例
+    init-method 实例化之前调用方法
+    destroy-method  销毁时执行方法
+    depends-on的时候，依赖他人的bean是先于被依赖bean销毁的
+    autowire-candidate autowire-candidate="false" 表示该对象不参与自动注入
+    autowire  no、byName、byType、constructor 注入方式
+    abstract="true"  是否是抽象类
+    parent   spring中使用parent属性来减少配置
+        简单说明
+        parentDataSource是父bean，其中abstract="true"表示parentDataSource不会被创建，类似于于抽象类。其中dataSource1、dataSource2、dataSource3继承了parentDataSource， 允许子bean对父属性进行修改，例如其中dataSource3重新对maxWait属性进行了配置，因此会覆盖parentDataSource。
+        如果子bean定义没有指定class属性，它将使用父bean定义的class属性，当然也可以覆盖它。在后面一种情况中，子bean的class属性值必须同父bean兼容，也就是说它必须接受父bean的属性值。
+        一个子bean定义可以从父bean继承构造器参数值、属性值以及覆盖父bean的方法，并且可以有选择地增加新的值。如果指定了init-method，destroy-method和/或静态factory-method，它们就会覆盖父bean相应的设置。
+     factory-bean：用于实例化工厂类；   factory-method：用于调用工厂类方法。-->
+    <bean id="test" name="test,test1" class="com.wsj.spring.bean.Tigger" scope="singleton" lazy-init="false" primary="true" depends-on="b"
+          init-method="init" destroy-method="destroy" autowire-candidate="true" autowire="byType" >
+        <property name="b" ref="b"></property>
+    </bean>
+    <!-- 静态方法：无须创建工厂类实例的情况下就可以调用工厂类方法  -->
+    <bean id="taggerFaction" class="com.wsj.spring.c1.TiggerFactory" factory-method="tiggerFactory"></bean>
+
+
+    <!--factory-bean：用于实例化工厂类-->
+    <bean id="b" name="b1,b2" class="com.wsj.spring.bean.B" scope="singleton" lazy-init="false" primary="true"  ></bean>
+    <!--  非静态工厂需要先定义工厂，在定义工厂方法 -->
+    <bean id="bFaction" class="com.wsj.spring.c1.BFactory"></bean>
+    <bean id="b4" factory-bean="bFaction" factory-method="bFactory"></bean>
+
+    <!-- spring xml 导入配置文件的两种方法 1：引入spring context 命名空间，通过使用<context:property-placeholder 加载
+                  2、定义bean <bean  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"> 引入本地配置文件 -->
+    <context:property-placeholder location="datasource.properties"/>
+    <!--<bean  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:datasource.properties"></property>
+      </bean>-->
+    <!-- 配置druid数据源 -->
+    <bean name="parentDataSource" abstract="true"   class="com.alibaba.druid.pool.DruidDataSource"
+          init-method="init" destroy-method="close">
+
+        <!-- 初始化连接大小 -->
+        <property name="initialSize" value="0" />
+        <!-- 连接池最大使用连接数量 -->
+        <property name="maxActive" value="1500" />
+        <!-- 连接池最小空闲 -->
+        <property name="minIdle" value="0" />
+        <!-- 获取连接最大等待时间 -->
+        <property name="maxWait" value="60000" />
+
+        <!-- 是否缓存preparedStatement，也就是PSCache。PSCache对支持游标的数据库性能提升巨大，比如说oracle。在mysql下建议关闭。 -->
+        <!-- <property name="poolPreparedStatements" value="true" /> <property
+            name="maxPoolPreparedStatementPerConnectionSize" value="33" /> -->
+
+        <!-- 验证数据库连接有效性，要求查询语句 -->
+        <property name="validationQuery" value="${validationQuery}" />
+        <!-- 建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。 -->
+        <property name="testWhileIdle" value="true" />
+        <!-- 申请连接时执行validationQuery检测连接是否有效，配置true会降低性能。 -->
+        <property name="testOnBorrow" value="false" />
+        <!-- 归还连接时执行validationQuery检测连接是否有效，配置true会降低性能 -->
+        <property name="testOnReturn" value="false" />
+
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="25200000" />
+
+        <!-- 对于长时间不使用的连接强制关闭 -->
+        <property name="removeAbandoned" value="true" />
+        <!-- 关闭超过30分钟的空闲连接，1800秒，也就是30分钟 -->
+        <property name="removeAbandonedTimeout" value="1800" />
+        <!-- 关闭abanded连接时输出错误日志 -->
+        <property name="logAbandoned" value="true" />
+
+        <!-- 监控数据库 -->
+        <!-- <property name="filters" value="mergeStat" /> -->
+        <property name="filters" value="stat" />
+    </bean>
+
+    <bean id="dataSource1" parent="parentDataSource">
+        <!-- 数据库连接基础信息 -->
+        <property name="url" value="${jdbc_url}" />
+        <property name="username" value="${jdbc_username}" />
+        <property name="password" value="${jdbc_password}" />
+    </bean>
+
+    <bean id="dataSource2" parent="parentDataSource">
+        <!-- 数据库连接基础信息 -->
+        <property name="url" value="${jdbc_url}" />
+        <property name="username" value="${jdbc_username}" />
+        <property name="password" value="${jdbc_password}" />
+    </bean>
+
+    <bean id="dataSource3" parent="parentDataSource">
+        <!-- 数据库连接基础信息 -->
+        <property name="url" value="${jdbc_url}" />
+        <property name="username" value="${jdbc_username}" />
+        <property name="password" value="${jdbc_password}" />
+        <!-- 获取连接最大等待时间 -->
+        <property name="maxWait" value="30000" />
+    </bean>
+
+</beans>
